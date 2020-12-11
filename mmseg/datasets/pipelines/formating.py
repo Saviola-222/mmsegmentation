@@ -209,6 +209,20 @@ class DefaultFormatBundle(object):
                 to_tensor(results['gt_semantic_seg'][None,
                                                      ...].astype(np.int64)),
                 stack=True)
+        if 'edge_map' in results:
+            # convert to long
+            results['edge_map'] = DC(
+                to_tensor(results['edge_map'][None, ...].astype(np.int64)),
+                stack=True)
+        if 'boundary_relaxed_one_hot' in results:
+            # convert to long
+            boundary_relaxed_one_hot = results['boundary_relaxed_one_hot']
+            boundary_relaxed_one_hot = np.ascontiguousarray(
+                boundary_relaxed_one_hot.transpose(2, 0, 1))
+            results['boundary_relaxed_one_hot'] = DC(
+                to_tensor(boundary_relaxed_one_hot.astype(np.int64)),
+                stack=True)
+
         return results
 
     def __repr__(self):
@@ -258,7 +272,15 @@ class Collect(object):
                  meta_keys=('filename', 'ori_filename', 'ori_shape',
                             'img_shape', 'pad_shape', 'scale_factor', 'flip',
                             'flip_direction', 'img_norm_cfg')):
-        self.keys = keys
+        if isinstance(keys, (tuple, list)):
+            self.keys = {}
+            for key in keys:
+                self.keys[key] = key
+        elif isinstance(keys, dict):
+            self.keys = keys
+        else:
+            raise KeyError('keys type {} is not supported'.format(type(keys)))
+        # self.keys = keys
         self.meta_keys = meta_keys
 
     def __call__(self, results):
@@ -279,8 +301,15 @@ class Collect(object):
         for key in self.meta_keys:
             img_meta[key] = results[key]
         data['img_metas'] = DC(img_meta, cpu_only=True)
+        # for key in self.keys:
+        #     data[key] = results[key]
         for key in self.keys:
-            data[key] = results[key]
+            if isinstance(self.keys[key], (tuple, list)):
+                data[key] = []
+                for iterm in self.keys[key]:
+                    data[key].append(results[iterm])
+            else:
+                data[key] = results[key]
         return data
 
     def __repr__(self):

@@ -114,6 +114,8 @@ class EncoderDecoder(BaseSegmentor):
         """Run forward function and calculate loss for auxiliary head in
         training."""
         losses = dict()
+        if isinstance(gt_semantic_seg, (list, tuple)):
+            gt_semantic_seg = gt_semantic_seg[0]
         if isinstance(self.auxiliary_head, nn.ModuleList):
             for idx, aux_head in enumerate(self.auxiliary_head):
                 loss_aux = aux_head.forward_train(x, img_metas,
