@@ -34,8 +34,14 @@ model = dict(
         #     img_based_class_weights='norm',
         #     batch_weights=True,
         #     loss_weight=20.0),
+        # loss_edge_decode=dict(
+        #     type='CrossEntropyLoss', use_sigmoid=True, loss_weight=20.0),
         loss_edge_decode=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=20.0),
+            type='BinaryCrossEntropyLoss',
+            include_zero=False,
+            img_based_class_weights='norm',
+            batch_weights=True,
+            loss_weight=20.0),
         # sampler=dict(type='OHEMPixelSampler', thresh=0.7, min_kept=10000),
         dropout_ratio=0.1,
         num_classes=19,
