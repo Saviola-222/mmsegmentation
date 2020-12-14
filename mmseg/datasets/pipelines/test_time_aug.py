@@ -1,6 +1,7 @@
 import warnings
 
 import mmcv
+import numpy as np
 
 from ..builder import PIPELINES
 from .compose import Compose
@@ -48,6 +49,8 @@ class MultiScaleFlipAug(object):
             options are "horizontal" and "vertical". If flip_direction is list,
             multiple flip augmentations will be applied.
             It has no effect when flip == False. Default: "horizontal".
+        divisor (int): Resized image size will be multiple to divisor.
+            Default: None.
     """
 
     def __init__(self,
@@ -55,8 +58,12 @@ class MultiScaleFlipAug(object):
                  img_scale,
                  img_ratios=None,
                  flip=False,
-                 flip_direction='horizontal'):
+                 flip_direction='horizontal',
+                 divisor=None):
         self.transforms = Compose(transforms)
+        if divisor is not None:
+            assert isinstance(divisor, int)
+        self.divisor = divisor
         if img_ratios is not None:
             img_ratios = img_ratios if isinstance(img_ratios,
                                                   list) else [img_ratios]
@@ -110,6 +117,11 @@ class MultiScaleFlipAug(object):
             img_scale = self.img_scale
         flip_aug = [False, True] if self.flip else [False]
         for scale in img_scale:
+            if self.divisor is not None:
+                scale = [
+                    int(np.ceil(s / self.divisor)) * self.divisor
+                    for s in scale
+                ]
             for flip in flip_aug:
                 for direction in self.flip_direction:
                     _results = results.copy()
