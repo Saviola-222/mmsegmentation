@@ -86,7 +86,8 @@ def binary_cross_entropy(pred,
         for i in range(pred.shape[0]):
             class_weight = calculate_weights(
                 label=label[i],
-                num_classes=pred.shape[1],
+                num_classes=pred.shape[1] if include_zero else pred.shape[1] +
+                1,
                 norm=img_based_class_weights == 'norm')
             class_weight = class_weight if include_zero else class_weight[1:]
             loss[i] = F.binary_cross_entropy_with_logits(
@@ -99,7 +100,8 @@ def binary_cross_entropy(pred,
                                        is not None) and batch_weights:
             class_weight = calculate_weights(
                 label=label,
-                num_classes=pred.shape[1],
+                num_classes=pred.shape[1] if include_zero else pred.shape[1] +
+                1,
                 norm=img_based_class_weights == 'norm')
             # print(class_weight)
         class_weight = class_weight if include_zero else class_weight[1:]
